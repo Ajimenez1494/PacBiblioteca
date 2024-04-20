@@ -7,7 +7,7 @@ public class BIbliotecaMain {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		String menu = "1- Insertar Libro\n2- Insertar Lector\n3- Listado de Libros\n4- Listado de lectores\n5- Ver Libro por ID\n6- Ver Lector por ID\n7- Salir";
+		String menu = "1- Insertar Libro\n2- Insertar Lector\n3- Listado de Libros\n4- Listado de lectores\n5- Ver Libro por ID\n6- Ver Lector por ID\n7- Prestar libro\n8- Devolver libro\n9- Libros actualmente prestados a un lector\n10- Libros disponibles para préstamo\n11- Historial de préstamos por lector\n12- Salir";
 		pintarMenu(menu);
 	}
 
@@ -25,7 +25,7 @@ public class BIbliotecaMain {
 
 		ConsultaDao consulta = new ConsultaDao();
 		GestionDao gestion = new GestionDao();
-		while (respuesta != 7) {
+		while (respuesta != 12) {
 			switch (respuesta) {
 			case 1:
 				gestion.insertarLibro();
@@ -45,9 +45,25 @@ public class BIbliotecaMain {
 			case 6:
 				consulta.verLectorID();
 				break;
+			case 7:
+				gestion.prestarLibro();
+				break;
+			case 8:
+				gestion.devolverLibro();
+				break;
+			case 9:
+				consulta.listarLibrosPrestados();
+				break;
+			case 10:
+				consulta.listarLibrosDisponibles();
+				break;
+			case 11:
+				consulta.historialPrestamosPorLector();
+				break;
 			default:
 				System.out.println("Opción inválida. Inténtalo de nuevo.");
-			}
+			} 
+			
 
 			respuesta = pideDatoNumerico(menu);
 		}

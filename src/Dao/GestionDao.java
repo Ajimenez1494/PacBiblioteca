@@ -9,6 +9,7 @@ import Entity.Prestamo;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
+import jakarta.persistence.TypedQuery;
 
 public class GestionDao {
 	// Gestión de préstamos, incluyendo asignar un libro a un lector y registrar la
@@ -103,33 +104,42 @@ public class GestionDao {
 
 	public void devolverLibro() {
 		Scanner respuesta = new Scanner(System.in);
-		System.out.println("Dime el id del libro que se devuelve");
+		System.out.println("Dime el id del libro que se devuelve:");
 		int idLibro = respuesta.nextInt();
-		System.out.println("Dime el id del lector que lo devuelve");
+		System.out.println("Dime el id del lector que lo devuelve:");
 		int idLector = respuesta.nextInt();
+
 		EntityManagerFactory emf = Persistence.createEntityManagerFactory("Hibernate");
 		EntityManager ent = emf.createEntityManager();
+		ent.getTransaction().begin();
+
 		Libro libro = ent.find(Libro.class, idLibro);
 		Lector lector = ent.find(Lector.class, idLector);
 
-		ent.getTransaction().begin();
+		if (libro != null && lector != null) {
+			TypedQuery<Prestamo> query = ent.createQuery(
+					"SELECT p FROM Prestamo p WHERE p.libro.id = :libroId AND p.lector.id = :lectorId", Prestamo.class);
+			query.setParameter("libroId", libro.getId());
+			query.setParameter("lectorId", lector.getId());
 
-		if (!libro.isDisponible()) {
-			Prestamo prestamo = ent
-					.createQuery("SELECT p FROM Prestamo p WHERE p.libro.id = :libroId AND p.lector.id = :lectorId",
-							Prestamo.class)
-					.setParameter("libroId", libro.getId()).getSingleResult();
+			Prestamo prestamo = query.getSingleResult();
+			if (prestamo != null) {
+				libro.setDisponible(true);
+				LocalDate fechaActual = LocalDate.now();
 
-			libro.setDisponible(true);
-			ent.persist(libro);
-			System.out.println("Devolviendo Libro");
+				prestamo.setFechaDevolución(fechaActual);
+				ent.merge(libro);
+				ent.merge(prestamo);
+				System.out.println("Libro devuelto.");
+			} else {
+				System.out.println("Este libro no está prestado a este lector.");
+			}
 		} else {
-			System.out.println("Este libro no está prestado.");
+			System.out.println("No se encontró el libro o el lector.");
 		}
 
 		ent.getTransaction().commit();
 		ent.close();
-
 	}
 
 }
